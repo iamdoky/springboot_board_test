@@ -37,4 +37,22 @@ public class BoardController {
         return "boardList";
     }
 
+    @GetMapping("/board/view")  // localhost:8080/board/view?id=1 -> get 방식의 parameter
+    public String boardView(Model model, Integer id) {
+
+        model.addAttribute("board", boardService.boardView(id));
+
+        return "boardView";
+    }
+
+    @GetMapping("/board/delete")
+    public String boardDelete(Integer id) {
+
+        boardService.boardDelete(id);
+        System.out.println("##########################################");
+        return "redirect:/board/list";
+    }
+
+
+
 }
