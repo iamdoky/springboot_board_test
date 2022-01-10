@@ -1,0 +1,118 @@
+
+ @.Logrotate 구조
+
+- /usr/sbin/logrotate 		: Logrotate 데몬 프로그램		
+- /etc/logrotate.conf 		: Logrotate 데몬 설정 파일		
+- /etc/logrotate.d/   		: Logrotate 프로세스 설정파일 	
+- /etc/cron.daily/logrotate : Logrotate cront 작업스케줄러
+- /var/lib/logrotate/status : Logrotate 로그 
+
+
+ @.Logrotate 설치확인
+ 
+# rpm -qa | grep logrotate / dpkg -l | grep logrotate
+
+
+ @.옵션
+ 
+- rotate [숫자] : log파일이 5개 이상 되면 삭제
+ex) rotate 5
+
+- maxage [숫자] : log파일이 30일 이상 되면 삭제
+ex) maxage 30
+
+- size : 지정된 용량보다 클 경우 rotate 실행
+ex) size +100k
+
+- create [권한][유저] [그룹] : rotate 되는 로그파일 권한 지정
+ex) create 644 root root
+
+- notifempty : 로그 내용이 없으면 rotate 하지 않음
+- ifempty : 로그 내용이 없어도 rotate 진행
+- monthly(월) , weekly(주) , daily(일) rotate 진행
+- compress : 로테이트 되는 로그파일 gzip 압축
+- nocompress : 로테이트 되는 로그파일 gzip 압축 X
+- missingok : 로그 파일이 발견되지 않은 경우 에러처리 하지 않음
+- dateext : 백업 파일의 이름에 날짜가 들어가도록 함
+
+####################################################################
+
+- rotate 30(숫자)  : log파일 30개 이상 되면 삭제
+- maxage 30(숫자) : 30일 이산된 로그 파일 삭제
+- size : 지정한 용량이 되면 로그로테이트를 실행한다. 10k, 10M 이런식으로 지정한다.
+- create : [권한 유저 그룹] 으로 rotation된 로그파일 생성
+- notifempty : log 내용이 없으면 rotation 하지 않는다.
+- ifempty : 로그파일이 비어있는 경우에도 로테이트한다.
+- monthly : 월 단위로 로테이트 한다.
+- daily : 월 단위로 로테이트 한다.
+- weekly : 월 단위로 로테이트 한다.
+- compress : rotate 된 로그 gzip 압축
+- nocompress : 압축을 원치 않는다.
+- mail admin@mail : 로테이트 설정에 의해 보관주기가 끝난 파일을 메일로 발송한다.
+- mailfirst admin@mail : 로테이트시 신규파일 이전의 로그를 메일로 발송한다.
+- nomail : 메일로 통보받지 않음.
+- errors admin@mail : 로테이트 실행시 에러가 발생하면 이메일로 통보한다.
+- prerotate-endscript : 사이의 명령어를 로그파일 처리전에 실행한다.
+- postrotate-endscript : 사이의 명령어를 로그파일 처리후에 실행한다.
+- extension : 로테이트 후 생성되는 파일의 확정자를 지정한다.
+- copytruncate : 이옵션을 넣지 않으면 현재 사용중인 로그를 다른이름으로 move하고 새로운 파일을 생성한다.
+
+... 더 많은 명령어들이 있는데 검색하면서 조건에 맞게 사용하면 좋을 거 같습니다.. :)
+
+
+ @.logrotate.d 작성 예시
+
+/var/log/syslog
+{
+	rotate 5  	 											// 로그 파일을 최대 5개까지 생성(ex. syslog.1~5)
+	weekly   	 											// 주단위로 로그파일을 생성
+	size 10M 	 											// 10M보다 클 경우 로테이트 실행
+	missingok    											// 파일이 중간에 누락되어도 무시하고 진행
+	notifempty   											// 로그파일의 내용이 없을 경우 로테이션을 진행하지 않음
+	delaycompress   										// 
+	compress  	 											// 로그파일을 압축
+	postrotate  											// 로테이션 실행 후 스크립트 파일을 실행
+			/usr/lib/rsyslog/rsyslog-rotate
+	endscript  												
+	pretrotate  											// 로테이션 실행 전 스크립트 파일을 실행
+			/usr/lib/rsyslog/rsyslog-rotate
+	endscript  												
+	create 644 root root  									// 로테이트 되는 로그파일 생성 시 부여할 권한
+}
+
+ @. Logrotate 실행
+ 
+ config 파일 작성 후 Logrotate 실행 ->
+ # /usr/sbin/logrotate -f /etc/logrotate.conf
+ 
+ ex) crontab을 사용한 주기적인 실행 ->
+ // 매주 일요일 자정 logrotate 실행
+ 00 00 * * 7 /usr/sbin/logrotate -f /etc/logrotate.conf
+ 
+ 
+ @. Logrotate 실행 관련 명령어
+ 
+ // logrotate 전체 실행
+ # /usr/sbin/logrotate -d /etc/logrotate.conf
+
+ // 특정 logrotate process 실행
+ # /usr/sbin/logrotate -d /etc/logrotate.d/apache
+
+ // logrotate 디버그 모드
+ # /usr/sbin/logrotate -d /etc/logrotate.conf
+ 
+ // 실행 과정 화면 출력
+ # /usr/sbin/logrotate -v /etc/logrotate.conf
+ 
+
+
+ @.참고 사이트..! 검색하면 많이 나오네용 ㅎㅎ... :D
+ 
+https://codinghero.tistory.com/37
+https://info-lab.tistory.com/25
+https://velog.io/@gillog/logrotate
+https://server-talk.tistory.com/271
+https://lasthackers.com/ubuntu-18-04-logrotate-%EC%84%A4%EC%A0%95%EB%A1%9C%EA%B7%B8-%EA%B4%80%EB%A6%AC/
+https://blueskai.tistory.com/101
+http://pchero21.com/?p=36
+https://m.blog.naver.com/PostView.naver?isHttpsRedirect=true&blogId=forioso&logNo=220923893346
