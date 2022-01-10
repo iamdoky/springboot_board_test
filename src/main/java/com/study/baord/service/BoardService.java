@@ -24,10 +24,16 @@ public class BoardService {
     }
 
     // 게시글 상세
-    public Board boardView (Integer id) { return boardRepository.findById(id).get(); }
+    public Board boardView (Integer id) {
+
+        return boardRepository.findById(id).get();
+    }
 
     // 게시글 삭제
-    public void boardDelete(Integer id) { boardRepository.deleteById(id); }
+    public void boardDelete(Integer id) {
+
+        boardRepository.deleteById(id);
+    }
 
 
 }
